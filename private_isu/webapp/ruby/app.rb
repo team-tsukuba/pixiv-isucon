@@ -115,10 +115,7 @@ module Isuconp
             post[:id]
           ).first[:count]
 
-          query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC'
-          unless all_comments
-            query += ' LIMIT 3'
-          end
+          query = "SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC #{all_comments ? "LIMIT 3" : ""}"
           comments = db.prepare(query).execute(
             post[:id]
           ).to_a
