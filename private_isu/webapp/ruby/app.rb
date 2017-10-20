@@ -86,6 +86,10 @@ module Isuconp
         }
       end
 
+      def symbolize_keys(hash)
+        hash.map{|k,v| [k.to_sym, v] }.to_h
+      end
+
       def try_login(account_name, password)
         user = db.prepare('SELECT * FROM users WHERE account_name = ? AND del_flg = 0').execute(account_name).first
 
@@ -123,7 +127,7 @@ module Isuconp
         user_json = redis.get("user:user_id#{session[:user][:id]}")
         return nil if user_json.nil?
 
-        JSON.parse(user_json)
+        symbolize_keys JSON.parse(user_json)
       end
 
       def make_posts(results, all_comments: false)
@@ -138,11 +142,11 @@ module Isuconp
           query = "SELECT * FROM `comments` WHERE `post_id` = #{post[:id]} ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
           comments = db.prepare(query).execute.to_a
           comments.each do |comment|
-            comment[:user] = JSON.parse(redis.get("user:user_id#{comment[:user_id]}"))
+            comment[:user] = symbolize_keys JSON.parse(redis.get("user:user_id#{comment[:user_id]}"))
           end
           post[:comments] = comments.reverse
 
-          post[:user] = JSON.parse(redis.get("user:user_id#{post[:user_id]}"))
+          post[:user] = symbolize_keys JSON.parse(redis.get("user:user_id#{post[:user_id]}"))
 
           posts.push(post)
 
