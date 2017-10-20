@@ -65,6 +65,13 @@ module Isuconp
         end
       end
 
+      def redis_initialize
+        counts = db.prepare('SELECT post_id, COUNT(*) as cnt FROM comments GROUP BY post_id').execute
+        counts.each { |count|
+          redis.set("comment_count:post_id#{count[post_id]}", cnt)
+        }
+      end
+
       def try_login(account_name, password)
         user = db.prepare('SELECT * FROM users WHERE account_name = ? AND del_flg = 0').execute(account_name).first
 
@@ -151,6 +158,7 @@ module Isuconp
 
     get '/initialize' do
       db_initialize
+      redis_initialize
       return 200
     end
 
