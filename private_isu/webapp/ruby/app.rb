@@ -80,6 +80,10 @@ module Isuconp
         del_users.each { |user|
           redis.set("del_flg:user_id#{user[:id]}", 1)
         }
+        users = db.prepare('SELECT * FROM users').execute
+        users.each{ |user|
+          redis.set("user:user_id#{user[:id]}", user.to_json)
+        }
       end
 
       def try_login(account_name, password)
