@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
+require 'redis'
 
 require 'rack-mini-profiler'
 require 'rack-lineprof'
@@ -52,6 +53,10 @@ module Isuconp
         Thread.current[:isuconp_db] = client
         client
       end
+
+      def redis
+        return Thread.current[:redis] if Thread.current[:redis]
+        return Thread.current[:redis] = Redis.new
 
       def db_initialize
         sql = []
