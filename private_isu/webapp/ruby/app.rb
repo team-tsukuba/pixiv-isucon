@@ -237,11 +237,11 @@ module Isuconp
       end
 
       query = 'INSERT INTO `users` (`account_name`, `passhash`) VALUES (?,?)'
-      result = db.prepare(query).execute(
+      db.prepare(query).execute(
         account_name,
         calculate_passhash(account_name, password)
       )
-      redis.set("user:user_id#{result.first[:id]}", result.first.to_json)
+      redis.set("user:user_id#{db.last_id}", db.prepare("SELECT FROM users WHERE #{db.last_id}").execute.first.to_json)
 
       session[:user] = {
         id: db.last_id
