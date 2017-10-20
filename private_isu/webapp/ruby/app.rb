@@ -125,6 +125,10 @@ module Isuconp
         end
       end
 
+      def symbolize_keys(hash)
+        hash.map{|k,v| [k.to_sym, v] }.to_h
+      end
+
       def make_posts(results, all_comments: false)
         posts = []
         results.to_a.each do |post|
@@ -143,9 +147,10 @@ module Isuconp
           end
           post[:comments] = comments.reverse
 
-          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            post[:user_id]
-          ).first
+          post[:user] = symbolize_keys(redis.get("user:user_id#{post[:user_id]}"))
+          # db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
+          #   post[:user_id]
+          # ).first
 
           posts.push(post)
 
@@ -230,10 +235,11 @@ module Isuconp
       end
 
       query = 'INSERT INTO `users` (`account_name`, `passhash`) VALUES (?,?)'
-      db.prepare(query).execute(
+      result = db.prepare(query).execute(
         account_name,
         calculate_passhash(account_name, password)
       )
+      redis.set("user:user_id#{result.first[:id]}", result.first.to_json)
 
       session[:user] = {
         id: db.last_id
@@ -250,7 +256,7 @@ module Isuconp
     get '/' do
       me = get_session_user()
 
-      results = db.query('SELECT `id`, `user_id`, `body`, `created_at`, `mime` FROM `posts` ORDER BY `created_at` DESC')
+      results = db.query('SELECT `id`, `user_id`, `body`, `created_at`, `mime` FROM `posts` ORDER BY `created_at` DESC LIMIT 20')
       posts = make_posts(results)
 
       erb :index, layout: :layout, locals: { posts: posts, me: me }
