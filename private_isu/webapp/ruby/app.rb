@@ -128,7 +128,7 @@ module Isuconp
       def make_posts(results, all_comments: false)
         posts = []
         results.to_a.each do |post|
-          if redis.get("del_flg:user_id#{post_user_id}")
+          if redis.get("del_flg:user_id#{post[:user_id]}")
             next
           end
 
