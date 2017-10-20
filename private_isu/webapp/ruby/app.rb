@@ -79,9 +79,9 @@ module Isuconp
           redis.set("user:user_id#{user[:id]}", user.to_json)
           redis.set("user:account_name#{user[:account_name]}", user.to_json)
         }
-        posts.each { |post|
-          redis.set("post:created_at#{post[:created_at]}", post.to_json)
-        }
+        # posts.each { |post|
+        #   redis.set("post:created_at#{post[:created_at]}", post.to_json)
+        # }
       end
 
       def try_login(account_name, password)
