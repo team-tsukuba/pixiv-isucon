@@ -347,15 +347,19 @@ module Isuconp
           redirect '/', 302
         end
 
-        params['file'][:tempfile].rewind
-        query = 'INSERT INTO `posts` (`user_id`, `mime`, `body`) VALUES (?,?,?,?)'
+        query = 'INSERT INTO `posts` (`user_id`, `mime`, `body`) VALUES (?,?,?)'
         db.prepare(query).execute(
           me[:id],
           mime,
-          params["file"][:tempfile].read,
+          # params["file"][:tempfile].read,
           params["body"],
         )
         pid = db.last_id
+
+        params['file'][:tempfile].rewind
+        image_file = File.open("/home/isucon/private_isu/webapp/public/image/#{pid}.#{params["file"][:type]}", "w+b")
+        image_file.write params["file"][:tempfile].read
+        image_file.close
 
         redirect "/posts/#{pid}", 302
       else
