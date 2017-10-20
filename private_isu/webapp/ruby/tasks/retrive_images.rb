@@ -28,7 +28,7 @@ def db
   client
 end
 
-image_ids = db.query('SELECT `id` FROM posts LIMIT 10')
+image_ids = db.query('SELECT `id` FROM posts')
 
 image_ids.to_a.each do |image_id|
   id = image_id[:id]
