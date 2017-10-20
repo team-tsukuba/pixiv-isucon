@@ -3,6 +3,7 @@ require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
 require 'redis'
+require 'json'
 
 require 'rack-mini-profiler'
 require 'rack-lineprof'
@@ -69,6 +70,18 @@ module Isuconp
         sql.each do |s|
           db.prepare(s).execute
         end
+      end
+
+      def redis_initialize
+        users = db.execute('SELECT * FROM users')
+        posts = db.execute('SELECT * FROM posts')
+        users.each { |user|
+          redis.set("user:user_id#{user[:id]}", user.to_json)
+          redis.set("user:account_name#{user[:account_name]}", user.to_json)
+        }
+        posts.each { |post|
+          redis.set("post:created_at#{post[:created_at]}", post.to_json)
+        }
       end
 
       def try_login(account_name, password)
@@ -162,6 +175,7 @@ module Isuconp
 
     get '/initialize' do
       db_initialize
+      redis_initialize
       return 200
     end
 
