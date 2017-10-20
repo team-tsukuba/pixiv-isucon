@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
+require 'redis'
 
 require 'rack-mini-profiler'
 require 'rack-lineprof'
@@ -51,6 +52,11 @@ module Isuconp
         client.query_options.merge!(symbolize_keys: true, database_timezone: :local, application_timezone: :local)
         Thread.current[:isuconp_db] = client
         client
+      end
+
+      def redis
+        return Thread.current[:redis] if Thread.current[:redis]
+        Thread.current[:redis] = Redis.new
       end
 
       def db_initialize
