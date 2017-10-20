@@ -124,9 +124,10 @@ module Isuconp
       end
 
       def get_session_user()
+        return nil unless session[:user] && session[:user][:id]
+
         user_json = redis.get("user:user_id#{session[:user][:id]}")
         return nil if user_json.nil?
-
         symbolize_keys JSON.parse(user_json)
       end
 
