@@ -332,7 +332,7 @@ module Isuconp
         end
 
         params['file'][:tempfile].rewind
-        query = 'INSERT INTO `posts` (`user_id`, `mime`, `imgdata`, `body`) VALUES (?,?,?,?)'
+        query = 'INSERT INTO `posts` (`user_id`, `mime`, `body`) VALUES (?,?,?)'
         db.prepare(query).execute(
           me[:id],
           mime,

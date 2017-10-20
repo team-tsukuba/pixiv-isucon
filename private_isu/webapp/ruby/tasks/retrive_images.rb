@@ -30,7 +30,11 @@ end
 
 image_ids = db.query('SELECT `id` FROM posts')
 
-image_ids.to_a.each do |image_id|
+puts "All images: #{image_ids.to_a.size}"
+
+image_ids.to_a.each_with_index do |image_id, index|
+  puts "Current: #{index}" if index % 100 == 0
+
   id = image_id[:id]
   post = db.prepare('SELECT * FROM `posts` WHERE `id` = ?').execute(id).first
   next unless post
@@ -38,7 +42,7 @@ image_ids.to_a.each do |image_id|
   mine = post[:mime]
   ext = ""
   if post[:mime] == "image/jpeg"
-    ext = "jpeg"
+    ext = "jpg"
   elsif post[:mime] == "image/png"
     ext = "png"
   elsif post[:mime] == "image/gif"
