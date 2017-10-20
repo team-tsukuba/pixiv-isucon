@@ -111,9 +111,7 @@ module Isuconp
       def make_posts(results, all_comments: false)
         posts = []
         results.to_a.each do |post|
-          post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
-            post[:id]
-          ).first[:count]
+          post[:comment_count] = redis.get("comment_count:post_id#{post[:id]}").to_i
 
           query = "SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC #{all_comments ? "LIMIT 3" : ""}"
           comments = db.prepare(query).execute(
@@ -384,6 +382,8 @@ module Isuconp
         me[:id],
         params['comment']
       )
+
+      redis.incr("comment_count:post_id#{post_id]}")
 
       redirect "/posts/#{post_id}", 302
     end
