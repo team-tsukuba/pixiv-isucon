@@ -76,6 +76,10 @@ module Isuconp
         counts.each { |count|
           redis.set("comment_count:post_id#{count[post_id]}", cnt)
         }
+        del_users = db.prepare('SELECT id FROM users WHERE del_flg != 0').execute
+        del_users.each { |user|
+          redis.set("del_flg:user_id#{user[:id]}", 1)
+        }
       end
 
       def try_login(account_name, password)
@@ -124,12 +128,14 @@ module Isuconp
       def make_posts(results, all_comments: false)
         posts = []
         results.to_a.each do |post|
+          if redis.get("del_flg:user_id#{post_user_id}")
+            next
+          end
+
           post[:comment_count] = redis.get("comment_count:post_id#{post[:id]}").to_i
 
-          query = "SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
-          comments = db.prepare(query).execute(
-            post[:id]
-          ).to_a
+          query = "SELECT * FROM `comments` WHERE `post_id` = #{post[:id]} ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
+          comments = db.prepare(query).execute
           comments.each do |comment|
             comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
               comment[:user_id]
@@ -141,7 +147,8 @@ module Isuconp
             post[:user_id]
           ).first
 
-          posts.push(post) if post[:user][:del_flg] == 0
+          posts.push(post)
+
           break if posts.length >= POSTS_PER_PAGE
         end
 
