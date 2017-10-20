@@ -57,6 +57,7 @@ module Isuconp
       def redis
         return Thread.current[:redis] if Thread.current[:redis]
         return Thread.current[:redis] = Redis.new
+      end
 
       def db_initialize
         sql = []
