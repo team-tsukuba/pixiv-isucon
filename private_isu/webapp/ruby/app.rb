@@ -120,11 +120,10 @@ module Isuconp
       end
 
       def get_session_user()
-        if session[:user]
-          JSON.parse(redis.get("user:user_id#{session[:user][:id]}"))
-        else
-          nil
-        end
+        user_json = redis.get("user:user_id#{session[:user][:id]}")
+        return nil if user_json.nil?
+
+        JSON.parse(user_json)
       end
 
       def make_posts(results, all_comments: false)
