@@ -120,7 +120,7 @@ module Isuconp
         results.to_a.each do |post|
           post[:comment_count] = redis.get("comment_count:post_id#{post[:id]}").to_i
 
-          query = "SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC #{all_comments ? "LIMIT 3" : ""}"
+          query = "SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
           comments = db.prepare(query).execute(
             post[:id]
           ).to_a
