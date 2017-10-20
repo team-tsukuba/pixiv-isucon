@@ -74,7 +74,7 @@ module Isuconp
       def redis_initialize
         counts = db.prepare('SELECT post_id, COUNT(*) as cnt FROM comments GROUP BY post_id').execute
         counts.each { |count|
-          redis.set("comment_count:post_id#{count[:post_id]}", cnt)
+          redis.set("comment_count:post_id#{count[:post_id]}", count[:cnt])
         }
         del_users = db.prepare('SELECT id FROM users WHERE del_flg != 0').execute
         del_users.each { |user|
