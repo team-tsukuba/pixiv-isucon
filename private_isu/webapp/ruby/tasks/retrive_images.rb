@@ -32,7 +32,7 @@ image_ids = db.query('SELECT `id` FROM posts LIMIT 10')
 
 image_ids.to_a.each do |image_id|
   id = image_id[:id]
-  post = db.prepare('SELECT * FROM `posts` WHERE `id` = ?').execute(params[:id].to_i).first
+  post = db.prepare('SELECT * FROM `posts` WHERE `id` = ?').execute(id).first
   next unless post
 
   mine = post[:mime]
