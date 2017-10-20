@@ -145,11 +145,11 @@ module Isuconp
           query = "SELECT * FROM `comments` WHERE `post_id` = #{post[:id]} ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
           comments = db.prepare(query).execute.to_a
           comments.each do |comment|
-            comment[:user] = symbolize_keys(redis.get("user:user_id#{comment[:user_id]}")
+            comment[:user] = symbolize_keys(JSON.parse(redis.get("user:user_id#{comment[:user_id]}")))
           end
           post[:comments] = comments.reverse
 
-          post[:user] = symbolize_keys(redis.get("user:user_id#{post[:user_id]}"))
+          post[:user] = symbolize_keys(JSON.parse(redis.get("user:user_id#{post[:user_id]}")))
           # db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
           #   post[:user_id]
           # ).first
