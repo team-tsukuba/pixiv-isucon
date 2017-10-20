@@ -2,12 +2,17 @@ require 'sinatra/base'
 require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
-require 'rack-lineprof'
 
 module Isuconp
   class App < Sinatra::Base
-    if ENV['RACK_ENV'] == 'develop'
+
+    configure :development do
+      require ‘sinatra/reloader’
+      register Sinatra::Reloader
+      use Rack::MiniProfiler
       use Rack::Lineprof, profile: 'app.rb'
+      use Rack::Logger
+      # use StackProf::Middleware, enable: true, mode: :wall, save_every: 1, path: ‘/home/isucon/webapp/ruby/tmp/stackprof’
     end
 
     use Rack::Session::Memcache, autofix_keys: true, secret: ENV['ISUCONP_SESSION_SECRET'] || 'sendagaya'
