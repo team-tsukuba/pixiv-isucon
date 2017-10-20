@@ -330,13 +330,17 @@ module Isuconp
 
       if params['file']
         mime = ''
+        ext = ''
         # 投稿のContent-Typeからファイルのタイプを決定する
         if params["file"][:type].include? "jpeg"
           mime = "image/jpeg"
+          ext = 'jpg'
         elsif params["file"][:type].include? "png"
           mime = "image/png"
+          ext = 'png'
         elsif params["file"][:type].include? "gif"
           mime = "image/gif"
+          ext = 'gif'
         else
           flash[:notice] = '投稿できる画像形式はjpgとpngとgifだけです'
           redirect '/', 302
@@ -357,7 +361,7 @@ module Isuconp
         pid = db.last_id
 
         params['file'][:tempfile].rewind
-        image_file = File.open("/home/isucon/private_isu/webapp/public/image/#{pid}.#{params["file"][:type]}", "w+b")
+        image_file = File.open("/home/isucon/private_isu/webapp/public/image/#{pid}.#{ext}", "w+b")
         image_file.write params["file"][:tempfile].read
         image_file.close
 
