@@ -31,5 +31,24 @@ end
 image_ids = db.query('SELECT `id` FROM posts LIMIT 10')
 
 image_ids.to_a.each do |image_id|
-  p image_id
+  id = image_id[:id]
+  post = db.prepare('SELECT * FROM `posts` WHERE `id` = ?').execute(params[:id].to_i).first
+  next unless post
+
+  mine = post[:mime]
+  ext = ""
+  if post[:mime] == "image/jpeg"
+    ext = "jpeg"
+  elsif post[:mime] == "image/png"
+    ext = "png"
+  elsif post[:mime] == "image/gif"
+    ext = "gif"
+  else
+    next
+  end
+
+  imgdata = post[:imgdata]
+  imgfile = File.open("/home/isucon/private_isu/webapp/public/image/#{id}.#{ext}", "w+b")
+  imgfile.write(imgdata)
+  imgfile.close
 end
