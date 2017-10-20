@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
+require 'redis'
 
 require 'rack-mini-profiler'
 require 'rack-lineprof'
@@ -53,6 +54,11 @@ module Isuconp
         client
       end
 
+      def redis
+        return Thread.current[:redis] if Thread.current[:redis]
+        Thread.current[:redis] = Redis.new
+      end
+
       def db_initialize
         sql = []
         sql << 'DELETE FROM users WHERE id > 1000'
@@ -63,6 +69,17 @@ module Isuconp
         sql.each do |s|
           db.prepare(s).execute
         end
+      end
+
+      def redis_initialize
+        counts = db.prepare('SELECT post_id, COUNT(*) as cnt FROM comments GROUP BY post_id').execute
+        counts.each { |count|
+          redis.set("comment_count:post_id#{count[post_id]}", cnt)
+        }
+        del_users = db.prepare('SELECT id FROM users WHERE del_flg != 0').execute
+        del_users.each { |user|
+          redis.set("del_flg:user_id#{user[:id]}", 1)
+        }
       end
 
       def try_login(account_name, password)
@@ -111,17 +128,14 @@ module Isuconp
       def make_posts(results, all_comments: false)
         posts = []
         results.to_a.each do |post|
-          post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
-            post[:id]
-          ).first[:count]
-
-          query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC'
-          unless all_comments
-            query += ' LIMIT 3'
+          if redis.get("del_flg:user_id#{post[:user_id]}")
+            next
           end
-          comments = db.prepare(query).execute(
-            post[:id]
-          ).to_a
+
+          post[:comment_count] = redis.get("comment_count:post_id#{post[:id]}").to_i
+
+          query = "SELECT * FROM `comments` WHERE `post_id` = #{post[:id]} ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
+          comments = db.prepare(query).execute.to_a
           comments.each do |comment|
             comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
               comment[:user_id]
@@ -133,7 +147,8 @@ module Isuconp
             post[:user_id]
           ).first
 
-          posts.push(post) if post[:user][:del_flg] == 0
+          posts.push(post)
+
           break if posts.length >= POSTS_PER_PAGE
         end
 
@@ -156,6 +171,7 @@ module Isuconp
 
     get '/initialize' do
       db_initialize
+      redis_initialize
       return 200
     end
 
@@ -387,6 +403,8 @@ module Isuconp
         me[:id],
         params['comment']
       )
+
+      redis.incr("comment_count:post_id#{post_id}")
 
       redirect "/posts/#{post_id}", 302
     end
