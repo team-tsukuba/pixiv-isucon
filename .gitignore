@@ -23,3 +23,5 @@ private_isu/webapp/golang/
 private_isu/webapp/node/
 private_isu/webapp/php/
 private_isu/webapp/public/image/
+.mysql_history
+
