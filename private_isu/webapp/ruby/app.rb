@@ -3,8 +3,19 @@ require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
 
+require 'rack-mini-profiler'
+require 'rack-lineprof'
+
 module Isuconp
   class App < Sinatra::Base
+
+    configure :development do
+      use Rack::MiniProfiler
+      use Rack::Lineprof, profile: 'app.rb'
+      use Rack::Logger
+      # use StackProf::Middleware, enable: true, mode: :wall, save_every: 1, path: ‘/home/isucon/webapp/ruby/tmp/stackprof’
+    end
+
     use Rack::Session::Memcache, autofix_keys: true, secret: ENV['ISUCONP_SESSION_SECRET'] || 'sendagaya'
     use Rack::Flash
     set :public_folder, File.expand_path('../../public', __FILE__)
