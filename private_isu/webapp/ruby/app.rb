@@ -135,7 +135,7 @@ module Isuconp
           post[:comment_count] = redis.get("comment_count:post_id#{post[:id]}").to_i
 
           query = "SELECT * FROM `comments` WHERE `post_id` = #{post[:id]} ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
-          comments = db.prepare(query).execute
+          comments = db.prepare(query).execute.to_a
           comments.each do |comment|
             comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
               comment[:user_id]
