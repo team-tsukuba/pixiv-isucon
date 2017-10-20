@@ -3,12 +3,13 @@ require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
 
+require 'rack-mini-profiler'
+require 'rack-lineprof'
+
 module Isuconp
   class App < Sinatra::Base
 
     configure :development do
-      require ‘sinatra/reloader’
-      register Sinatra::Reloader
       use Rack::MiniProfiler
       use Rack::Lineprof, profile: 'app.rb'
       use Rack::Logger

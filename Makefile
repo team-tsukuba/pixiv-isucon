@@ -4,7 +4,7 @@ system-reload:
 
 service-reload:
 	cd private_isu/webapp/ruby
-	(cd /home/isucon/private_isu/webapp/ruby; ~/.local/ruby/bin/bundle install)
+	(cd /home/isucon/private_isu/webapp/ruby; bundle install)
 	sudo systemctl restart isu-ruby.service
 	cd
 
