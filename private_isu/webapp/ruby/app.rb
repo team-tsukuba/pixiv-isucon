@@ -73,12 +73,12 @@ module Isuconp
       end
 
       def redis_initialize
-        users = db.query('SELECT * FROM users')
-        posts = db.query('SELECT * FROM posts')
-        users.each { |user|
-          redis.set("user:user_id#{user[:id]}", user.to_json)
-          redis.set("user:account_name#{user[:account_name]}", user.to_json)
-        }
+        # users = db.query('SELECT * FROM users')
+        # posts = db.query('SELECT * FROM posts')
+        # users.each { |user|
+        #   redis.set("user:user_id#{user[:id]}", user.to_json)
+        #   redis.set("user:account_name#{user[:account_name]}", user.to_json)
+        # }
         # posts.each { |post|
         #   redis.set("post:created_at#{post[:created_at]}", post.to_json)
         # }
