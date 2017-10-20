@@ -80,6 +80,10 @@ module Isuconp
         del_users.each { |user|
           redis.set("del_flg:user_id#{user[:id]}", 1)
         }
+        r_users = db.query('SELECT * FROM users')
+        r_users.each { |user|
+          redis.set("user:user_id#{user[:id]}", user.to_json)
+        }
       end
 
       def try_login(account_name, password)
@@ -117,9 +121,7 @@ module Isuconp
 
       def get_session_user()
         if session[:user]
-          db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            session[:user][:id]
-          ).first
+          JSON.parse(redis.get("user:user_id#{session[:user][:id]}"))
         else
           nil
         end
@@ -137,15 +139,11 @@ module Isuconp
           query = "SELECT * FROM `comments` WHERE `post_id` = #{post[:id]} ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
           comments = db.prepare(query).execute.to_a
           comments.each do |comment|
-            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-              comment[:user_id]
-            ).first
+            comment[:user] = JSON.parse(redis.get("user:user_id#{comment[:user_id]}"))
           end
           post[:comments] = comments.reverse
 
-          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            post[:user_id]
-          ).first
+          post[:user] = JSON.parse(redis.get("user:user_id#{post[:user_id]}"))
 
           posts.push(post)
 
