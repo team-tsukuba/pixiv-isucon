@@ -391,7 +391,7 @@ module Isuconp
         params['comment']
       )
 
-      redis.incr("comment_count:post_id#{post_id]}")
+      redis.incr("comment_count:post_id#{post_id}")
 
       redirect "/posts/#{post_id}", 302
     end
