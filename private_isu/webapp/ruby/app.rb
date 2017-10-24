@@ -80,6 +80,14 @@ module Isuconp
         del_users.each { |user|
           redis.set("del_flg:user_id#{user[:id]}", 1)
         }
+        r_users = db.query('SELECT * FROM users')
+        r_users.each { |user|
+          redis.set("user:user_id#{user[:id]}", user.to_json)
+        }
+      end
+
+      def symbolize_keys(hash)
+        hash.map{|k,v| [k.to_sym, v] }.to_h
       end
 
       def try_login(account_name, password)
@@ -116,13 +124,11 @@ module Isuconp
       end
 
       def get_session_user()
-        if session[:user]
-          db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            session[:user][:id]
-          ).first
-        else
-          nil
-        end
+        return nil unless session[:user] && session[:user][:id]
+
+        user_json = redis.get("user:user_id#{session[:user][:id]}")
+        return nil if user_json.nil?
+        symbolize_keys JSON.parse(user_json)
       end
 
       def make_posts(results, all_comments: false)
@@ -137,15 +143,11 @@ module Isuconp
           query = "SELECT * FROM `comments` WHERE `post_id` = #{post[:id]} ORDER BY `created_at` DESC #{all_comments ? 'LIMIT 3' : ''}"
           comments = db.prepare(query).execute.to_a
           comments.each do |comment|
-            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-              comment[:user_id]
-            ).first
+            comment[:user] = symbolize_keys JSON.parse(redis.get("user:user_id#{comment[:user_id]}"))
           end
           post[:comments] = comments.reverse
 
-          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            post[:user_id]
-          ).first
+          post[:user] = symbolize_keys JSON.parse(redis.get("user:user_id#{post[:user_id]}"))
 
           posts.push(post)
 
